@@ -5,7 +5,7 @@ const { getRecipe, saveRecipe } = require('../controllers/recipeController');
 
 const router = express.Router();
 
-router.post("/generate", verifyToken, getRecipe);
+router.post("/generate", getRecipe);
 router.post("/save", verifyToken, saveRecipe);
 
 module.exports = router;
