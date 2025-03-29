@@ -6,7 +6,7 @@ const RecipeSchema = new mongoose.Schema(
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true, // Har recipe ek user se linked hogi
+      required: true, 
     },
     title: {
       type: String,
@@ -14,7 +14,7 @@ const RecipeSchema = new mongoose.Schema(
       trim: true,
     },
     ingredients: {
-      type: [String], // Array of Strings
+      type: [String], 
       required: [true, "Ingredients are required"],
     },
    
@@ -34,11 +34,11 @@ const RecipeSchema = new mongoose.Schema(
         enum: ["vegetarian", "vegan", "non-vegetarian", "keto", "paleo"],
       },
       allergies: {
-        type: [String], // ["nuts", "gluten", "dairy"]
+        type: [String],
         default: [],
       },
       cookingTime: {
-        type: String, // "30 minutes"
+        type: String, 
         required: true,
       },
       servings: {
@@ -55,9 +55,9 @@ const RecipeSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// ✅ Pre-save Hook (Agar kuch sanitize ya modify karna ho)
+//  Pre-save Hook (Agar kuch sanitize ya modify karna ho)
 RecipeSchema.pre("save", function (next) {
-  this.title = this.title.trim(); // Extra spaces hatao
+  this.title = this.title.trim(); 
   next();
 });
 

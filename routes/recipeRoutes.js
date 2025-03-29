@@ -1,11 +1,11 @@
 const express = require('express');
-const verifyToken = require('../middlewares/authMiddleware');
 const { getRecipe, saveRecipe } = require('../controllers/recipeController');
 
+const isLoggedIn = require('../middlewares/authMiddleware');
 
 const router = express.Router();
 
-router.post("/generate", getRecipe);
-router.post("/save", verifyToken, saveRecipe);
+router.post("/generate",isLoggedIn, getRecipe);
+router.post("/save", isLoggedIn, saveRecipe);
 
 module.exports = router;

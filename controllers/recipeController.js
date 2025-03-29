@@ -64,27 +64,42 @@ const getRecipe = async (req, res) => {
   }
 };
 
-// ✅ Recipe Save Karne Ka Function (Authentication + Validation)
+
+
+
+
+
 const saveRecipe = async (req, res) => {
   try {
-    if (!req.user || !req.user.id) {
-      return res.status(401).json({ error: "Unauthorized access" });
+    const { recipe } = req.body;  
+    if (!recipe) {
+      return res.status(400).json({ error: "Recipe data is required" });
     }
 
-    // ✅ Validate Request Body
-    const { title, ingredients, cuisine, preferences } = req.body;
-    if (!title || !ingredients || !cuisine) {
-      return res.status(400).json({ error: "Title, ingredients, and cuisine are required" });
+    const { title, ingredients, instructions, cuisine, preferences } = recipe;  
+    const userId=req.user.id;
+
+    if (!userId || !preferences?.servings || !preferences?.cookingTime) {
+      return res.status(400).json({ error: "Missing required fields" });
     }
 
-    // ✅ Recipe Save Karna
-    const recipe = await Recipe.create({ ...req.body, userId: req.user.id });
+    const newRecipe = new Recipe({
+      title,
+      ingredients,
+      instructions,
+      cuisine,
+      preferences,
+      userId
+    });
 
-    res.status(201).json({ message: "Recipe saved successfully", recipe });
+    await newRecipe.save();
+    res.status(201).json({ message: "Recipe saved successfully", recipe: newRecipe });
+
   } catch (err) {
     console.error("Error saving recipe:", err);
-    res.status(500).json({ error: "Internal server error" });
+    res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
 
 module.exports = { saveRecipe, getRecipe };
