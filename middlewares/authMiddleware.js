@@ -17,7 +17,6 @@ const isLoggedIn = async (req, res, next) => {
       if (error.name === "TokenExpiredError") {
         //  **Token Expired => Check Refresh Token in HTTP-Only Cookie**
         const refreshToken = req.cookies.refreshToken;  //  Refresh token from cookie
-        console.log(req.cookies);
         if (!refreshToken) {
           return res.status(403).json({ message: "Session expired. Please log in again." });
         }

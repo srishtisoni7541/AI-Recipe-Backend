@@ -25,7 +25,7 @@ app.use(express.urlencoded({extended:true}));
 app.use(helmet());
 app.use(morgan("dev"));
 app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 100 }));
-app.use(cookieParser());
+app.use(cookieParser())
 
 // // Routes
 app.use("/api/auth", authRoutes);

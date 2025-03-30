@@ -18,6 +18,10 @@ const RecipeSchema = new mongoose.Schema(
       required: [true, "Ingredients are required"],
     },
    
+    instructions: {
+      type: [String], 
+      required: [true, "Instructions are required"],
+    },
     cuisine: {
       type: String,
       enum: ["Italian", "Indian", "Mexican", "Chinese", "French", "Other"],
