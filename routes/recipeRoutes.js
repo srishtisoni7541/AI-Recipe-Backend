@@ -7,6 +7,6 @@ const router = express.Router();
 
 router.post("/generate", getRecipe);
 router.post("/save", isLoggedIn, saveRecipe);
-router.get("/recipes",isLoggedIn, getAllRecipes);
+router.get("/getAllRecipes",isLoggedIn, getAllRecipes);
 
 module.exports = router;

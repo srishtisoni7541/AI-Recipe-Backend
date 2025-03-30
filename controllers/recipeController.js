@@ -83,37 +83,6 @@ const saveRecipe = async (req, res) => {
 
 
 
-
-// const saveRecipe = async (req, res) => {
-//   try {
-//     const { recipe } = req.body;  
-//     if (!recipe) {
-//       return res.status(400).json({ error: "Recipe data is required" });
-//     }
-
-//     const { title, ingredients, instructions } = recipe;  
-//     const userId=req.user.id;
-
-//     if (!userId ) {
-//       return res.status(400).json({ error: "Missing required fields" });
-//     }
-
-//     const newRecipe = new Recipe({
-//       title,
-//       ingredients,
-//       instructions,
-//       userId
-//     });
-
-//     await newRecipe.save();
-//     res.status(201).json({ message: "Recipe saved successfully", recipe: newRecipe });
-
-//   } catch (err) {
-//     console.error("Error saving recipe:", err);
-//     res.status(500).json({ error: "Internal Server Error" });
-//   }
-// };
-
 const getAllRecipes = async (req, res) => {
   try {
  
@@ -125,7 +94,7 @@ const getAllRecipes = async (req, res) => {
     }
 
     const recipes = await Recipe.find();
-    await redisClient.setEx("allRecipes", 3600, JSON.stringify(recipes));
+    await redisClient.set('recipes', JSON.stringify(recipes), 'EX', 3600);
 
     console.log("Serving from MongoDB");
     res.status(200).json({ success: true, data: recipes });
