@@ -4,18 +4,20 @@ const User = require("../models/User.model");
 const isLoggedIn = async (req, res, next) => {
   try {
     const accessToken = req.header("Authorization")?.split(" ")[1];
+
     if (!accessToken) {
       return res.status(401).json({ message: "Unauthorized. Token missing!" });
     }
 
     try {
-      // ✅ Access Token Verify
+      // ✅ **Access Token Verify**
       req.user = jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET);
       return next();
     } catch (error) {
       if (error.name === "TokenExpiredError") {
-        // ⚡ Token Expired => Check Refresh Token in HTTP-Only Cookie
-        const refreshToken = req.cookies.refreshToken;
+        //  **Token Expired => Check Refresh Token in HTTP-Only Cookie**
+        const refreshToken = req.cookies.refreshToken;  //  Refresh token from cookie
+        console.log(req.cookies);
         if (!refreshToken) {
           return res.status(403).json({ message: "Session expired. Please log in again." });
         }
@@ -23,14 +25,17 @@ const isLoggedIn = async (req, res, next) => {
         try {
           const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
           const user = await User.findById(decoded.id);
+          
           if (!user || user.refreshToken !== refreshToken) {
             return res.status(403).json({ message: "Invalid Refresh Token. Please log in again." });
           }
 
-          // ✅ Generate new tokens
+          // 🔄 **Generate New Tokens**
           const { accessToken: newAccessToken, refreshToken: newRefreshToken } = user.generateNewTokens();
-          await user.save(); // Save new tokens in DB
+          user.refreshToken = newRefreshToken;
+          await user.save();
 
+          // **Set New Tokens in Cookies & Headers**
           res.cookie("refreshToken", newRefreshToken, {
             httpOnly: true,
             secure: true,
@@ -39,7 +44,7 @@ const isLoggedIn = async (req, res, next) => {
           });
 
           res.setHeader("Authorization", `Bearer ${newAccessToken}`);
-          req.user = decoded;
+          req.user = decoded;  // ✅ Set user object
           return next();
         } catch (error) {
           return res.status(403).json({ message: "Invalid Refresh Token. Please log in again." });
@@ -49,6 +54,7 @@ const isLoggedIn = async (req, res, next) => {
       }
     }
   } catch (error) {
+    console.log(error);
     return res.status(500).json({ message: "Internal Server Error" });
   }
 };

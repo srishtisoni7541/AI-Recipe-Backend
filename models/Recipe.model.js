@@ -14,7 +14,7 @@ const RecipeSchema = new mongoose.Schema(
       trim: true,
     },
     ingredients: {
-      type: [String], 
+      type: [], 
       required: [true, "Ingredients are required"],
     },
    
@@ -39,11 +39,9 @@ const RecipeSchema = new mongoose.Schema(
       },
       cookingTime: {
         type: String, 
-        required: true,
       },
       servings: {
         type: Number,
-        required: true,
         min: [1, "Minimum 1 serving required"],
       },
       healthyOption: {

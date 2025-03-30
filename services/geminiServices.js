@@ -1,36 +1,38 @@
+const { GoogleGenerativeAI } = require("@google/generative-ai");
+require("dotenv").config(); 
 
-const { GoogleGenerativeAI } = require("@google/generative-ai"); 
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 const generateRecipe = async (ingredients, preferences, cuisine) => {
-  const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
-
-  const prompt = `Generate a recipe using: ${ingredients}. Preferences: ${preferences}. Cuisine: ${cuisine}. Format response as a **valid JSON object** with keys: "title", "ingredients", "instructions".`;
-
   try {
-    const result = await model.generateContent({ contents: [{ role: "user", parts: [{ text: prompt }] }] });
+    console.log("Sending Request to Gemini API...");
 
-    //  Ensure response structure is correct
-    if (!result?.response?.candidates || result.response.candidates.length === 0) {
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+
+    const prompt = `Generate a recipe using: ${ingredients}. Preferences: ${preferences}. Cuisine: ${cuisine}. Format response as a JSON with keys: "title", "ingredients", "instructions".`;
+
+    const result = await model.generateContent({
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+    });
+
+    if (!result || !result.response || !result.response.candidates) {
       throw new Error("Invalid response from Gemini API");
     }
 
-    const responseText = result.response.candidates[0]?.content?.parts?.[0]?.text || "";
+    const responseText = result.response.candidates[0]?.content?.parts?.[0]?.text?.trim();
+    if (!responseText) throw new Error("Empty response from Gemini API");
 
-    if (!responseText) {
-      throw new Error("Empty response from Gemini API");
-    }
-
-    //  Remove possible markdown artifacts like ```json
+    //  JSON Cleanup
     const cleanedResponse = responseText.replace(/```json|```/g, "").trim();
+    console.log("📜 Cleaned Response:", cleanedResponse);
 
     return JSON.parse(cleanedResponse);
   } catch (error) {
-    console.error(" Gemini API request failed:", error);
-    throw new Error("Gemini API request failed");
+    console.error(" Gemini API request failed:", error.message);
+    return null; // Avoid crashing the server
   }
 };
 
-module.exports = generateRecipe;
 
+module.exports = generateRecipe;
