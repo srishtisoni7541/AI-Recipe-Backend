@@ -3,9 +3,11 @@ const User = require('../models/User.model'); // Apne User model ka sahi path us
 
 const getUserProfile = async (req, res) => {
   try {
-    const userId = req.user._id; // Token se aaya user ID
+    const userId = req.user.id; 
+    console.log(userId);
+    console.log(req.params);
 
-    // Check if user data is cached
+   
     const cachedUser = await redisClient.get(`user:${userId}`);
     console.log(cachedUser);
     if (cachedUser) {

@@ -34,7 +34,6 @@ userSchema.pre("save", async function (next) {
   next();
 });
 
-// 🔹 Method to Generate New Tokens (for Refresh)
 userSchema.methods.generateNewTokens = function () {
   this.accessToken = jwt.sign(
     { id: this._id },
@@ -47,6 +46,8 @@ userSchema.methods.generateNewTokens = function () {
     process.env.REFRESH_TOKEN_SECRET,
     { expiresIn: "7d" }
   );
+  console.log(this.refreshToken);
+  console.log(this.accessToken);
 
   return { accessToken: this.accessToken, refreshToken: this.refreshToken };
 };

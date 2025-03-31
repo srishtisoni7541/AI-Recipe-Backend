@@ -1,6 +1,4 @@
 
-
-
 const generateRecipe = require("../services/geminiServices");
 const Recipe = require("../models/Recipe.model");
 const redisClient = require("../config/redisClient");
@@ -38,29 +36,21 @@ const getRecipe = async (req, res) => {
 };
 
 
-
-
-
 const saveRecipe = async (req, res) => {
   try {
-    console.log("Request Body:", req.body);
-    const { recipe } = req.body;
-
-    if (!recipe) {
-      return res.status(400).json({ error: "Recipe data is required" });
-    }
-
-    const { title, ingredients, instructions } = recipe;
+    const { title, ingredients, instructions } = req.body;
     const userId = req.user?.id;
+    console.log(userId);
+    console.log("Request Body:", title, ingredients, instructions);
 
     if (!userId) {
       return res.status(400).json({ error: "User ID missing" });
     }
 
     const newRecipe = new Recipe({
-      title,
-      ingredients,
-      instructions,
+      title: title,
+      ingredients: ingredients,
+      instructions: instructions,
       userId,
     });
 
@@ -75,12 +65,15 @@ const saveRecipe = async (req, res) => {
       message: "Recipe saved successfully",
       recipe: newRecipe,
     });
-
   } catch (err) {
     console.error("Error saving recipe:", err);
-    res.status(500).json({ error: "Internal Server Error", details: err.message });
+    res
+      .status(500)
+      .json({ error: "Internal Server Error", details: err.message });
   }
 };
+
+
 
 const getAllRecipes = async (req, res) => {
   try {
