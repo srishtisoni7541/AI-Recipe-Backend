@@ -146,4 +146,35 @@ const getRecipeById = async (req, res) => {
   }
 };
 
-module.exports = { saveRecipe, getRecipe,getAllRecipes,getRecipeById,deleteRecipe };
+
+
+
+
+const likeRecipe = async (req, res) => {
+  const { recipeId, userId } = req.body;
+
+  try {
+    const recipe = await Recipe.findById(recipeId);
+
+    if (!recipe) {
+      return res.status(404).json({ message: "Recipe not found" });
+    }
+
+    const isLiked = recipe.likedBy.includes(userId);
+
+    if (isLiked) {
+      // If the recipe is already liked, unlike it
+      recipe.likedBy = recipe.likedBy.filter((id) => id !== userId);
+    } else {
+      // Otherwise, like the recipe
+      recipe.likedBy.push(userId);
+    }
+
+    await recipe.save();
+    return res.status(200).json({ success: true, recipe });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error updating the recipe" });
+  }
+};
+module.exports = { saveRecipe, getRecipe,getAllRecipes,getRecipeById,deleteRecipe,likeRecipe };
