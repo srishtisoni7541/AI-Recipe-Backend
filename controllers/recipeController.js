@@ -7,12 +7,10 @@ const redisClient = require("../config/redisClient");
 
 
 const getRecipe = async (req, res) => {
-  console.log('hello');
   try {
     const { ingredients, preferences, cuisine } = req.body;
-    console.log("🔹 Request Received:", { ingredients, preferences, cuisine });
 
-    // ✅ Input Validation
+    //  Input Validation
     if (!ingredients || !Array.isArray(ingredients) || ingredients.length === 0) {
       console.error(" Invalid Ingredients:", ingredients);
       return res.status(400).json({ error: "Ingredients must be a non-empty array" });
@@ -22,42 +20,38 @@ const getRecipe = async (req, res) => {
       return res.status(400).json({ error: "Cuisine must be a valid string" });
     }
 
-    const cacheKey = `recipe:${JSON.stringify(ingredients)}:${JSON.stringify(preferences)}:${cuisine}`;
     
-    // ✅ Redis Cache Check
-    const cachedRecipe = await redisClient.get(cacheKey);
-    if (cachedRecipe) {
-      console.log("✅ Cache Hit! Returning Cached Recipe.");
-      return res.status(200).json(JSON.parse(cachedRecipe));
-    }
 
-    // ✅ Recipe Generate Karna
-    console.log("🚀 Calling Gemini API...");
+
+    //  Recipe Generate Karna
+    console.log(" Calling Gemini API...");
     const recipe = await generateRecipe(ingredients, preferences, cuisine);
 
-    console.log("✅ Recipe Generated:", recipe);
+    console.log("Recipe Generated:", recipe);
 
-    // ✅ Redis Me Cache Karna (1 Hour ke liye)
-    await redisClient.set(cacheKey, JSON.stringify(recipe), "EX", 3600);
 
     res.status(200).json(recipe);
   } catch (err) {
-    console.error("❌ Error fetching recipe:", err);
+    console.error(" Error fetching recipe:", err);
     res.status(500).json({ error: "Internal server error" });
   }
 };
 
 
+
+
+
 const saveRecipe = async (req, res) => {
   try {
-    console.log(" Request Body:", req.body);  
+    console.log("Request Body:", req.body);
     const { recipe } = req.body;
+
     if (!recipe) {
       return res.status(400).json({ error: "Recipe data is required" });
     }
 
     const { title, ingredients, instructions } = recipe;
-    const userId = req.user?.id; 
+    const userId = req.user?.id;
 
     if (!userId) {
       return res.status(400).json({ error: "User ID missing" });
@@ -67,21 +61,26 @@ const saveRecipe = async (req, res) => {
       title,
       ingredients,
       instructions,
-      userId
+      userId,
     });
 
     await newRecipe.save();
-    console.log(" Recipe saved:", newRecipe);  // Debugging ke liye
-    res.status(201).json({ message: "Recipe saved successfully", recipe: newRecipe });
+
+    // ✅ Redis me Save Karna
+    const recipeKey = `user:${userId}:recipe:${newRecipe._id}`;
+    await redisClient.set(recipeKey, JSON.stringify(newRecipe));
+    await redisClient.expire(recipeKey, 3600); // 1 hour expiration
+
+    res.status(201).json({
+      message: "Recipe saved successfully",
+      recipe: newRecipe,
+    });
 
   } catch (err) {
-    console.error(" Error saving recipe:", err); //  Exact error yaha dikhega
+    console.error("Error saving recipe:", err);
     res.status(500).json({ error: "Internal Server Error", details: err.message });
   }
 };
-
-
-
 
 const getAllRecipes = async (req, res) => {
   try {
@@ -133,4 +132,25 @@ const getRecipeById = async (req, res) => {
   }
 };
 
-module.exports = { saveRecipe, getRecipe,getAllRecipes,getRecipeById };
+
+ const deleteRecipe = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Check if recipe exists
+    const recipe = await Recipe.findById(id);
+    if (!recipe) {
+      return res.status(404).json({ success: false, message: "Recipe not found" });
+    }
+
+    // Delete the recipe
+    await Recipe.findByIdAndDelete(id);
+
+    res.status(200).json({ success: true, message: "Recipe deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting recipe:", error);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
+module.exports = { saveRecipe, getRecipe,getAllRecipes,getRecipeById,deleteRecipe };

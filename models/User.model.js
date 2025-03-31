@@ -8,6 +8,7 @@ const userSchema = new mongoose.Schema({
   password: { type: String, required: true },
   accessToken: { type: String },
   refreshToken: { type: String },
+  likedRecipes: [{ type: mongoose.Schema.Types.ObjectId, ref: "Recipe" }] // ✅ Array of ObjectIds
 });
 
 // 🔹 Pre-Save Hook for Hashing Password & Generating Tokens
