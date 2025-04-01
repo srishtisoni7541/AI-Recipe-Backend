@@ -11,11 +11,11 @@ function getRedisInstance() {
     });
 
     redisInstance.on("connect", () => {
-      console.log("✅ Redis Connected");
+      console.log(" Redis Connected");
     });
 
     redisInstance.on("error", (err) => {
-      console.error("❌ Redis Error:", err);
+      console.error(" Redis Error:", err);
     });
   }
   return redisInstance;

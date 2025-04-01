@@ -46,8 +46,8 @@ userSchema.methods.generateNewTokens = function () {
     process.env.REFRESH_TOKEN_SECRET,
     { expiresIn: "7d" }
   );
-  console.log(this.refreshToken);
-  console.log(this.accessToken);
+  // console.log(this.refreshToken);
+  // console.log(this.accessToken);
 
   return { accessToken: this.accessToken, refreshToken: this.refreshToken };
 };

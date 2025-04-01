@@ -10,7 +10,7 @@ const isLoggedIn = async (req, res, next) => {
     }
 
     try {
-      // ✅ **Access Token Verify**
+      //  **Access Token Verify**
       req.user = jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET);
       return next();
     } catch (error) {
@@ -29,7 +29,7 @@ const isLoggedIn = async (req, res, next) => {
             return res.status(403).json({ message: "Invalid Refresh Token. Please log in again." });
           }
 
-          // 🔄 **Generate New Tokens**
+          //  **Generate New Tokens**
           const { accessToken: newAccessToken, refreshToken: newRefreshToken } = user.generateNewTokens();
           user.refreshToken = newRefreshToken;
           await user.save();
@@ -43,7 +43,7 @@ const isLoggedIn = async (req, res, next) => {
           });
 
           res.setHeader("Authorization", `Bearer ${newAccessToken}`);
-          req.user = decoded;  // ✅ Set user object
+          req.user = decoded;  // Set user object
           return next();
         } catch (error) {
           return res.status(403).json({ message: "Invalid Refresh Token. Please log in again." });
