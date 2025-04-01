@@ -2,6 +2,7 @@
 const generateRecipe = require("../services/geminiServices");
 const Recipe = require("../models/Recipe.model");
 const redisClient = require("../config/redisClient");
+const User = require("../models/User.model");
 
 
 const getRecipe = async (req, res) => {
@@ -149,32 +150,140 @@ const getRecipeById = async (req, res) => {
 
 
 
-
-const likeRecipe = async (req, res) => {
-  const { recipeId, userId } = req.body;
-
+// Function to search recipes by title
+const searchRecipesByTitle = async (req, res) => {
   try {
-    const recipe = await Recipe.findById(recipeId);
-
-    if (!recipe) {
-      return res.status(404).json({ message: "Recipe not found" });
+    const { title } = req.query;  // Get title from query params
+    if (!title) {
+      return res.status(400).json({ message: "Title is required for search" });
     }
 
-    const isLiked = recipe.likedBy.includes(userId);
+    // Search recipes by title (case insensitive)
+    const recipes = await Recipe.find({
+      title: { $regex: title, $options: "i" }  // 'i' for case insensitive search
+    });
 
-    if (isLiked) {
-      // If the recipe is already liked, unlike it
-      recipe.likedBy = recipe.likedBy.filter((id) => id !== userId);
-    } else {
-      // Otherwise, like the recipe
-      recipe.likedBy.push(userId);
+    if (recipes.length === 0) {
+      return res.status(404).json({ message: "No recipes found with that title" });
     }
 
-    await recipe.save();
-    return res.status(200).json({ success: true, recipe });
+    return res.status(200).json({ data: recipes });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Error updating the recipe" });
+    return res.status(500).json({ message: "Error searching recipes" });
   }
 };
-module.exports = { saveRecipe, getRecipe,getAllRecipes,getRecipeById,deleteRecipe,likeRecipe };
+// // The `likedRecipes` function
+// const likedRecipes = async (req, res) => {
+//   const { id: recipeId } = req.params;  // Correct way to get recipeId
+//   const userId = req.user.id; 
+//   console.log("hus");
+//   console.log("userr and recipe id:",{userId,recipeId});   
+//   if (!recipeId) {
+//     return res.status(400).json({ error: "Recipe ID is required" });
+//   }
+
+//   try {
+//     // Check Redis cache first for the recipe and user's liked state
+//     const cacheKey = `user:${userId}:likedRecipes`;
+    
+//     redisClient.get(cacheKey, async (err, data) => {
+//       if (err) {
+//         console.error("Redis error:", err);
+//         return res.status(500).json({ error: "Internal server error" });
+//       }
+
+//       let userLikedRecipes = data ? JSON.parse(data) : null;
+//       let user = await User.findById(userId);
+//       let recipe = await Recipe.findById(recipeId);
+
+//       if (!user || !recipe) {
+//         return res.status(404).json({ error: "User or Recipe not found" });
+//       }
+
+//       // Check if the recipe is already in the user's liked recipes list
+//       if (userLikedRecipes && userLikedRecipes.includes(recipeId)) {
+//         return res.status(200).json({ message: "Recipe already liked" });
+//       }
+
+//       // Add the recipe to the user's likedRecipes field in the userModel
+//       userLikedRecipes = userLikedRecipes || [];
+//       userLikedRecipes.push(recipeId);
+
+//       // Update the likedRecipes field in the user document
+//       user.likedRecipes = userLikedRecipes;
+//       await user.save();
+
+//       // Update the likedBy field in the recipe document
+//       recipe.likedBy.push(userId);
+//       await recipe.save();
+
+//       // Update Redis cache with the updated likedRecipes list
+//       redisClient.set(cacheKey, JSON.stringify(userLikedRecipes), 'EX', 3600); // Cache for 1 hour
+
+//       return res.status(200).json({ message: "Recipe liked successfully" });
+//     });
+//   } catch (err) {
+//     console.error(err);
+//     return res.status(500).json({ error: "An error occurred while liking the recipe" });
+//   }
+// };
+
+
+
+
+const likedRecipes = async (req, res) => {
+  const { id: recipeId } = req.params;  
+  const userId = req.user.id; 
+
+  if (!recipeId) {
+    return res.status(400).json({ error: "Recipe ID is required" });
+  }
+
+  try {
+    // Check Redis cache for the user's liked recipes
+    const cacheKey = `user:${userId}:likedRecipes`;
+    const cacheData = await redisClient.get(cacheKey);
+
+    let userLikedRecipes = cacheData ? JSON.parse(cacheData) : [];
+
+    // Fetch user and recipe from the database
+    const user = await User.findById(userId);
+    const recipe = await Recipe.findById(recipeId);
+
+    if (!user || !recipe) {
+      return res.status(404).json({ error: "User or Recipe not found" });
+    }
+
+    // Check if the recipe is already liked
+    if (userLikedRecipes.includes(recipeId)) {
+      return res.status(200).json({ message: "Recipe already liked" });
+    }
+
+    // Add the recipe to the user's likedRecipes list
+    userLikedRecipes.push(recipeId);
+
+    // Update the user's likedRecipes in the user model
+    user.likedRecipes = userLikedRecipes;
+    await user.save();
+
+    // Update the likedBy field in the recipe document
+    recipe.likedBy.push(userId);
+    await recipe.save();
+
+    // Update the Redis cache with the updated likedRecipes list
+    await redisClient.set(cacheKey, JSON.stringify(userLikedRecipes), 'EX', 3600); // Cache for 1 hour
+
+    // Delete the user's profile cache to ensure it's reloaded fresh
+    const userCacheKey = `user:${userId}`;
+    await redisClient.del(userCacheKey); // This is now asynchronous as well
+
+    return res.status(200).json({ message: "Recipe liked successfully" });
+
+  } catch (err) {
+    console.error("Error liking recipe:", err);
+    return res.status(500).json({ error: "An error occurred while liking the recipe" });
+  }
+};
+
+module.exports = { saveRecipe, getRecipe,getAllRecipes,getRecipeById,deleteRecipe,searchRecipesByTitle, likedRecipes };

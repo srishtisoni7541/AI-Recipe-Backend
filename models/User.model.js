@@ -8,23 +8,23 @@ const userSchema = new mongoose.Schema({
   password: { type: String, required: true },
   accessToken: { type: String },
   refreshToken: { type: String },
-  likedRecipes: [{ type: mongoose.Schema.Types.ObjectId, ref: "Recipe" }] // ✅ Array of ObjectIds
+  likedRecipes: [{ type: mongoose.Schema.Types.ObjectId, ref: "Recipe" }] //  Array of ObjectIds
 });
 
-// 🔹 Pre-Save Hook for Hashing Password & Generating Tokens
+//  Pre-Save Hook for Hashing Password & Generating Tokens
 userSchema.pre("save", async function (next) {
   if (this.isModified("password")) {
     this.password = await bcrypt.hash(this.password, 10);
   }
 
-  // ✅ Access Token Generate
+  //  Access Token Generate
   this.accessToken = jwt.sign(
     { id: this._id },
     process.env.ACCESS_TOKEN_SECRET,
     { expiresIn: "15m" }
   );
 
-  // ✅ Refresh Token Generate
+  //  Refresh Token Generate
   this.refreshToken = jwt.sign(
     { id: this._id },
     process.env.REFRESH_TOKEN_SECRET,
