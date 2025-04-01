@@ -15,7 +15,7 @@ const getUserProfile = async (req, res,next) => {
     }
 
     // Fetch user from Database if not found in Cache
-    const user = await User.findById(userId).select("-password"); // Exclude password field for security
+    const user = await User.findById(userId).select("-password -refreshToken"); // Exclude password field for security
     // console.log("User fetched from DB:", user);
 
     if (!user) {

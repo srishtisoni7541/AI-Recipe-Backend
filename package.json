@@ -23,7 +23,8 @@
     "ioredis": "^5.6.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.13.0",
-    "redis": "^4.7.0"
+    "redis": "^4.7.0",
+    "redux-persist": "^6.0.0"
   },
   "devDependencies": {
     "express-rate-limit": "^7.5.0",

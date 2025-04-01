@@ -57,6 +57,7 @@ const login = async (req, res,next) => {
 
     // Generate new tokens
     const { accessToken, refreshToken } = user.generateNewTokens();
+    const { password: _, refreshToken: __, ...userWithoutSensitiveData } = user.toObject();
     res
       .cookie("refreshToken", refreshToken, {
         httpOnly: true,
@@ -65,7 +66,7 @@ const login = async (req, res,next) => {
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       })
       .header("Authorization", `Bearer ${accessToken}`)
-      .json({ message: "Login successful", accessToken, user });
+      .json({ message: "Login successful", accessToken, user:userWithoutSensitiveData });
   } catch (err) {
     // console.error("Login error:", err);
     // res.status(500).json({ error: "Login failed", details: err.message });
