@@ -1,13 +1,13 @@
 
 const Redis = require("ioredis");
 
-let redisInstance = null; // Singleton instance
-
+let redisInstance = null;
 function getRedisInstance() {
   if (!redisInstance) {
     redisInstance = new Redis({
-      host: "127.0.0.1",
-      port: 6379,
+      host: "redis-15457.c301.ap-south-1-1.ec2.redns.redis-cloud.com",
+      port: 15457,
+      password:"kTuA2qSIBbh9AB3G5ZhZOt78uo0Qdlfv"
     });
 
     redisInstance.on("connect", () => {
