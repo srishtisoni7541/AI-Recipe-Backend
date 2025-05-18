@@ -14,7 +14,7 @@ const app = express();
 // Middleware
 
 const corsOptions = {
-    origin:  'https://ai-recipe-client-s7zx.vercel.app'||'http://localhost:5173',
+    origin:  'https://ai-recipe-client-s7zx.vercel.app'||'http://localhost:5173'||'ai-recipe-client-s7zx.vercel.app',
     methods: 'GET,POST,PUT,DELETE',
     allowedHeaders: ['Content-Type', 'Authorization', 'Cache-Control'],
     credentials: true
