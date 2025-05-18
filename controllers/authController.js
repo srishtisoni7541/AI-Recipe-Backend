@@ -5,6 +5,10 @@ const bcrypt = require("bcrypt");
 const register = async (req, res, next) => {
   try {
     const { name, email, password } = req.body;
+    const existingUser = await User.findOne({email});
+    if(existingUser){
+      return res.status(400).json({ message: "Email already in use." });
+    }
 
     const user = await User.create({ name, email, password });
 
@@ -33,8 +37,6 @@ const register = async (req, res, next) => {
         accessToken,
       });
   } catch (err) {
-    // console.error(err);
-    // res.status(400).json({ error: "Registration failed" });
     next(err)
   }
 };
@@ -68,8 +70,6 @@ const login = async (req, res,next) => {
       .header("Authorization", `Bearer ${accessToken}`)
       .json({ message: "Login successful", accessToken, user:userWithoutSensitiveData });
   } catch (err) {
-    // console.error("Login error:", err);
-    // res.status(500).json({ error: "Login failed", details: err.message });
     next(err);
   }
 };
