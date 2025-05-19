@@ -11,28 +11,47 @@ const userRoutes = require('./routes/userRoutes');
 
 const app = express();
 
-// Middleware
+// ✅ CORS Configuration
+const allowedOrigins = [
+  "https://ai-recipe-client-s7zx.vercel.app",
+  "http://localhost:5173"
+];
 
 const corsOptions = {
-    origin:  'https://ai-recipe-client-s7zx.vercel.app'||'http://localhost:5173'||'ai-recipe-client-s7zx.vercel.app',
-    methods: 'GET,POST,PUT,DELETE',
-    allowedHeaders: ['Content-Type', 'Authorization', 'Cache-Control'],
-    credentials: true
-  };
-  
-  app.use(cors(corsOptions));
-  app.options('*', cors(corsOptions)); 
+  origin: function (origin, callback) {
+    // allow requests with no origin (like mobile apps, curl, postman)
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  methods: 'GET,POST,PUT,DELETE',
+  allowedHeaders: ['Content-Type', 'Authorization', 'Cache-Control'],
+  credentials: true
+};
+
+// ✅ Middlewares
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions)); 
+
 app.use(express.json());
-app.use(express.urlencoded({extended:true}));
+app.use(express.urlencoded({ extended: true }));
 app.use(helmet());
 app.use(morgan("dev"));
-app.use(cookieParser())
-app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 100 }));
+app.use(cookieParser());
+app.use(rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100,
+  message: "Too many requests, please try again later."
+}));
 
-// // Routes
+// ✅ Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/recipes", recipeRoutes);
-app.use('/api/users',userRoutes);
-// Error Handler
+app.use("/api/users", userRoutes);
+
+// ✅ Error Handler
 app.use(errorHandler);
+
 module.exports = app;

@@ -23,7 +23,10 @@ const getUserProfile = async (req, res,next) => {
     }
 
     // Store the user in Redis cache with expiry (1 hour)
-    await redisClient.set(`user:${userId}`, JSON.stringify(user), "EX", 3600);
+    await redisClient.set(`user:${userId}`, JSON.stringify(user), {
+  ex: 3600
+});
+
 
     // Return the user profile as response
     res.status(200).json(user);
